@@ -1,0 +1,11 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+.idea/
+.terraform/
+.terraform.lock.hcl
+*.zip
+terraform-*.out
+ca.crt
+.vscode/
+.DS_Store
