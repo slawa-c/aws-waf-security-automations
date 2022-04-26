@@ -324,7 +324,7 @@ Conditions:
 Mappings:
     SourceCode:
         General:
-            TemplateBucket: 'solutions-reference'
+            TemplateBucket: 'gds-solutions-reference'
             SourceBucket: 'solutions'
             KeyPrefix: 'aws-waf-security-automations/v3.2.0'
     Solution:

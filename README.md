@@ -94,7 +94,10 @@ AWS Solutions use two buckets:
 * One global bucket that is access via the http end point. AWS CloudFormation templates are stored here. Ex. "mybucket"
 * One regional bucket for each region where you plan to deploy the solution. Use the name of the global bucket as the prefix of the bucket name, and suffixed with the region name. Regional assets such as Lambda code are stored here. Ex. "mybucket-us-east-1"
 * The assets in buckets must be accessible by your account
-
+```
+gds-solutions-reference
+gds-aws-waf-security-automations-us-east-1
+```
 #### 4. Declare enviroment variables
 ```
 export TEMPLATE_OUTPUT_BUCKET=<YOUR_TEMPLATE_OUTPUT_BUCKET> # Name of the global bucket where CloudFormation templates are stored
@@ -102,6 +105,13 @@ export DIST_OUTPUT_BUCKET=<YOUR_DIST_OUTPUT_BUCKET> # Name for the regional buck
 export SOLUTION_NAME=<SOLUTION_NAME> # name of the solution.
 export VERSION=<VERSION> # version number for the customized code
 export AWS_REGION=<AWS_REGION> # region where the solution is deployed
+```
+```
+export TEMPLATE_OUTPUT_BUCKET="gds-solutions-reference"
+export DIST_OUTPUT_BUCKET="gds-aws-waf-security-automations"
+export SOLUTION_NAME="aws-waf-security-automations"
+export VERSION="v3.2.0"
+export AWS_REGION="us-east-1"
 ```
 #### 5. Build the solution
 ```
