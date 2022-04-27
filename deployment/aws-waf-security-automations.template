@@ -21,6 +21,8 @@ Description: >-
   and an Amazon CloudWatch custom metric. You will be billed for the AWS resources used if you
   create a stack from this template.
 
+  **CHANGED** This template was changed to match additional features used in BOSE GDS platform
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
