@@ -413,8 +413,37 @@ Resources:
                     Arn: !GetAtt WAFWhitelistSetV4.Arn
                 - IPSetReferenceStatement:
                     Arn: !GetAtt WAFWhitelistSetV6.Arn
-        - Name: !Sub '${ParentStackName}BlacklistRule'
+        - Name: !Sub '${ParentStackName}BlockRequestOver8k'
           Priority: 2
+          Action:
+            Count: {}
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Join ['', [!Join ['', !Split ['-', !Ref ParentStackName]], 'BlockRequestOver8k']]
+          Statement:
+            SizeConstraintStatement:
+              FieldToMatch:
+                Body: {}
+              ComparisonOperator: GT
+              Size: 8192
+              TextTransformations:
+                - Priority: 0
+                  Type: NONE
+        - Name: !Sub '${ParentStackName}AWSManagedRulesKnownBadInputsRuleSet'
+          Priority: 3
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Join ['', [!Join ['', !Split ['-', !Ref ParentStackName]], 'AWSManagedRulesKnownBadInputsRuleSet']]
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+        - Name: !Sub '${ParentStackName}BlacklistRule'
+          Priority: 4
           Action:
             Block: {}
           VisibilityConfig:
@@ -431,7 +460,7 @@ Resources:
         - !If
           - HttpFloodProtectionLogParserActivated
           - Name: !Sub '${ParentStackName}HttpFloodRegularRule'
-            Priority: 3
+            Priority: 5
             Action:
               Block:
                 CustomResponse:
@@ -452,7 +481,7 @@ Resources:
         - !If
           - HttpFloodProtectionRateBasedRuleActivated
           - Name: !Sub '${ParentStackName}HttpFloodRateBasedRule'
-            Priority: 4
+            Priority: 6
             Action:
               Block: {}
             VisibilityConfig:
@@ -467,7 +496,7 @@ Resources:
         - !If
           - ScannersProbesProtectionActivated
           - Name: !Sub '${ParentStackName}ScannersAndProbesRule'
-            Priority: 5
+            Priority: 7
             Action:
               Block: {}
             VisibilityConfig:
@@ -485,7 +514,7 @@ Resources:
         - !If
           - ReputationListsProtectionActivated
           - Name: !Sub '${ParentStackName}IPReputationListsRule'
-            Priority: 6
+            Priority: 8
             Action:
               Block: {}
             VisibilityConfig:
@@ -503,7 +532,7 @@ Resources:
         - !If
           - BadBotProtectionActivated
           - Name: !Sub '${ParentStackName}BadBotRule'
-            Priority: 7
+            Priority: 9
             Action:
               Block: {}
             VisibilityConfig:
