@@ -70,12 +70,7 @@ Clone or download the repository to a local directory on your linux client. Note
 **Git Clone example:**
 
 ```
-git clone https://github.com/awslabs/aws-waf-security-automations.git
-```
-
-**Download Zip example:**
-```
-wget https://github.com/awslabs/aws-waf-security-automations/archive/master.zip
+git clone https://stash.gd.bose.com/scm/cfn/gds-aws-waf-security-automations.git
 ```
 
 #### 2. Unit test
