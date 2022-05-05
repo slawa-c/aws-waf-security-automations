@@ -424,7 +424,8 @@ Resources:
           Statement:
             SizeConstraintStatement:
               FieldToMatch:
-                Body: {}
+                Body:
+                  OversizeHandling: MATCH
               ComparisonOperator: GT
               Size: 8192
               TextTransformations:
@@ -570,7 +571,8 @@ Resources:
                           Type: HTML_ENTITY_DECODE
                   - SqliMatchStatement:
                       FieldToMatch:
-                        Body: {}
+                        Body:
+                          OversizeHandling: CONTINUE
                       TextTransformations:
                         - Priority: 1
                           Type: URL_DECODE
@@ -624,7 +626,8 @@ Resources:
                           Type: HTML_ENTITY_DECODE
                   - XssMatchStatement:
                       FieldToMatch:
-                        Body: {}
+                        Body:
+                          OversizeHandling: CONTINUE
                       TextTransformations:
                         - Priority: 1
                           Type: URL_DECODE
