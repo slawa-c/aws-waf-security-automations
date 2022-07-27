@@ -30,6 +30,7 @@ Metadata:
           - ActivateAWSManagedRulesParam
           - ActivateSqlInjectionProtectionParam
           - ActivateCrossSiteScriptingProtectionParam
+          - ActivateAWSManagedRulesKnownBadInputsRuleSetParam
           - ActivateHttpFloodProtectionParam
           - ActivateScannersProbesProtectionParam
           - ActivateReputationListsProtectionParam
@@ -61,6 +62,9 @@ Metadata:
 
       ActivateCrossSiteScriptingProtectionParam:
         default: Activate Cross-site Scripting Protection
+      
+      ActivateAWSManagedRulesKnownBadInputsRuleSetParam:
+        default: Activate AWS Manageg Rules Known Bad Input Protection
 
       ActivateHttpFloodProtectionParam:
         default: Activate HTTP Flood Protection
@@ -125,6 +129,14 @@ Parameters:
       - 'yes'
       - 'no'
     Description: Choose yes to enable the component designed to block common XSS attacks.
+  
+  ActivateAWSManagedRulesKnownBadInputsRuleSetParam:
+    Type: String
+    Default: 'yes'
+    AllowedValues:
+      - 'yes'
+      - 'no'
+    Description: Choose yes to enable the component designed to block AWS Known Bad Inputs attacks.
 
   ActivateHttpFloodProtectionParam:
     Type: String
@@ -262,6 +274,10 @@ Conditions:
   HttpFloodAthenaLogParser: !Equals
     - !Ref ActivateHttpFloodProtectionParam
     - 'yes - Amazon Athena log parser'
+  
+  AWSManagedRulesKnownBadInputsRuleSetActivated: !Equals
+    - !Ref ActivateAWSManagedRulesKnownBadInputsRuleSetParam
+    - 'yes'
 
   HttpFloodProtectionLogParserActivated: !Or
     - Condition: HttpFloodLambdaLogParser
@@ -401,6 +417,7 @@ Resources:
         ActivateAWSManagedRulesParam: !Ref ActivateAWSManagedRulesParam
         ActivateSqlInjectionProtectionParam: !Ref ActivateSqlInjectionProtectionParam
         ActivateCrossSiteScriptingProtectionParam: !Ref ActivateCrossSiteScriptingProtectionParam
+        ActivateAWSManagedRulesKnownBadInputsRuleSetParam: !Ref ActivateAWSManagedRulesKnownBadInputsRuleSetParam
         ActivateHttpFloodProtectionParam: !Ref ActivateHttpFloodProtectionParam
         ActivateScannersProbesProtectionParam: !Ref ActivateScannersProbesProtectionParam
         ActivateReputationListsProtectionParam: !Ref ActivateReputationListsProtectionParam
