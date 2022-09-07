@@ -105,7 +105,7 @@ export AWS_REGION=<AWS_REGION> # region where the solution is deployed
 export TEMPLATE_OUTPUT_BUCKET="gds-solutions-reference"
 export DIST_OUTPUT_BUCKET="gds-aws-waf-security-automations"
 export SOLUTION_NAME="aws-waf-security-automations"
-export VERSION="v3.2.0"
+export VERSION="v3.2.1"
 export AWS_REGION="us-east-1"
 ```
 #### 5. Build the solution
