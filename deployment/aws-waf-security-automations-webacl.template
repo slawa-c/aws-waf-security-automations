@@ -1,15 +1,5 @@
-# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License").
-# You may not use this file except in compliance with the License.
-# A copy of the License is located at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# or in the "license" file accompanying this file. This file is distributed
-# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-# express or implied. See the License for the specific language governing
-# permissions and limitations under the License.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
@@ -49,19 +39,41 @@ Parameters:
     Type: String
   LogLevel:
     Type: String
+  SqlInjectionProtectionSensitivityLevelParam:
+    Type: String
 
 Conditions:
   AWSManagedRulesActivated: !Equals
     - !Ref ActivateAWSManagedRulesParam
     - 'yes'
+    
+  SqlInjectionProtectionActivated:  !Not [!Equals [!Ref ActivateSqlInjectionProtectionParam, 'no']]
 
-  SqlInjectionProtectionActivated: !Equals
+  CrossSiteScriptingProtectionActivated: !Not [!Equals [!Ref ActivateCrossSiteScriptingProtectionParam, 'no']]
+
+  SqlInjectionProtectionContinueActivated: !Equals
     - !Ref ActivateSqlInjectionProtectionParam
     - 'yes'
 
-  CrossSiteScriptingProtectionActivated: !Equals
+  SqlInjectionProtectionMatchActivated: !Equals
+    - !Ref ActivateSqlInjectionProtectionParam
+    - 'yes - MATCH'
+
+  SqlInjectionProtectionNoMatchActivated: !Equals
+    - !Ref ActivateSqlInjectionProtectionParam
+    - 'yes - NO_MATCH'
+
+  CrossSiteScriptingProtectionContinueActivated: !Equals
     - !Ref ActivateCrossSiteScriptingProtectionParam
     - 'yes'
+
+  CrossSiteScriptingProtectionMatchActivated: !Equals
+    - !Ref ActivateCrossSiteScriptingProtectionParam
+    - 'yes - MATCH'
+
+  CrossSiteScriptingProtectionNoMatchActivated: !Equals
+    - !Ref ActivateCrossSiteScriptingProtectionParam
+    - 'yes - NO_MATCH'
 
   HttpFloodProtectionRateBasedRuleActivated: !Equals
     - !Ref ActivateHttpFloodProtectionParam
@@ -378,10 +390,6 @@ Resources:
         MetricName: !Join ['', [!Join ['', !Split ['-', !Ref ParentStackName]], 'WAFWebACL']]
       DefaultAction:
         Allow: {}
-      CustomResponseBodies:
-        429-bose-custom-response:
-          ContentType: "TEXT_HTML"
-          Content: "<!doctype html>\n<html>\n\n<head>\n\t<meta charset='UTF-8'>\n\t<meta name='viewport' content='width=device-width, initial-scale=1.0' />\n\t<title class=\"js-title\">HTTP/1.1 429 Too Many Requests</title>\n<style>\n\nbody {\n\tmargin: 0;\n\tpadding: 0;\n\tbackground: #eeeeee;\n\tfont-family: Bose Gothic, Helvetica, Sans-serif;\n}\n.bose-maintenanceNotice {\n\tmargin: auto;\n\twidth: 100%;\n\tmax-width: 1000px;\n\tbackground: #ffffff;\n}\n.bose-maintenanceNotice__header {\n\tbackground: #000000;\n\theight: 40px;\n\twidth: 100%;\n}\n.bose-maintenanceNotice__logo {\n\theight: 40px;\n}\n\n.-paddingTop {\n\tpadding-top: 5%;\n}\n.bose-maintenanceNotice__copy {\n\ttext-align: center;\n\tpadding-top: 10%;\n\tpadding-bottom: 10%;\n\tpadding-left: 10px;\n\tpadding-right: 10px;\n}\n.bose-maintenanceNotice__title {\n\tfont-size: 60px;\n\tcolor: #000000;\n\tmargin-bottom: 2px;\n\tfont-weight: normal;\n}\n\n.bose-maintenanceNotice__subtitle {\n\tfont-size: 30px;\n\tmargin-bottom: 12px;\n\tfont-weight: normal;\n}\n\n.bose-maintenanceNotice__text .bose-maintenanceNotice__text__phone {\n\tfont-size: 18px;\n\tcolor: #666666;\n}\n\n.bose-maintenanceNotice__footer {\n\ttext-align: right;\n\tbackground: #222222;\n\twidth: 100%;\n}\n\n.bose-maintenanceNotice__footer--right {\n\tmargin-right: 0px;\n\tdisplay: inline-block;\n\tpadding: 45px 30px 45px 30px;\n\tfont-size: 12px;\n\tcolor: #ccc;\n\ttext-align: right;\n\ttext-transform: uppercase;\n}\n</style>\n</head>\n<body>\n\t<div class='bose-maintenanceNotice'>\n\t\t<div class='bose-maintenanceNotice__header'>\n\t\t\t<img class='bose-maintenanceNotice__logo' src='data:image/gif;base64,R0lGODlhbwAeAPYAABQUFLi4uLW1tYGBgbe3t0lJSQgICEJCQrCwsC8vLxoaGo+Pj6WlpRgYGG1tbePj4zQ0NJeXlz8/P/X19QwMDOjo6LOzs/r6+mpqatfX1/n5+dnZ2T09PSEhIfb29sXFxZmZmU1NTURERPz8/GVlZc3NzSUlJVBQUOfn53Nzc319fSgoKODg4MLCwqysrNzc3AYGBr+/v87OzgMDAwUFBbu7u4uLi19fXxwcHAoKCkBAQFNTU8bGxp+fn3d3dwAAAMnJydDQ0EdHR97e3u7u7vLy8oWFhVpaWjg4OFZWVsvLy////+3t7WdnZ3t7ex8fH4iIiOTk5KOjo9ra2hAQEOvr65SUlIKCgvHx8WJiYhISEtPT06GhoXR0dMDAwH9/f2hoaCZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySZFySH5BAEAAGEALAAAAABvAB4AAAf/gD+Cg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6viwACAbS1tgQFPzlfs7a2CAk/CgsEvrYMDT8Oxsy+AwcQrBFL1EsTU1MV1SNWPxYj1UtTF+FLGAYZ4Rob5UscTx7hDxvY9fb1ICEiqwng1SSCJFAbocFEiCX+luQiEA4FBRXhJqz4wSJcix8uwr2gAWtRjREgRygRRKMGwhFQZkxBSM3FDwjhRtxoUCTkiC+CcujUOUNHuRAdFe0ox4IHj4ojJvSg4YNl0ic/Ptjk8WNBuRJGs4L4MSPIthEfsmYVEvSHgSHyZMggcnJkAywg1REa+XEk4QgkP3YA2QtEiZIJ4Zj8IGFTZInDiAXMKOsknAeoP6D4A/KjBzhwDygYeGCTC9fFMxb/MOHBZgoKVcJ1K3tIAeBqAwQ9gQsSCYS44BxEZmmtQZaTIA/QEJBwwwyrA6tQ6bilufPnnG1uaA4YnGcXl8FVGXKZWoofGxIueYAi4QUhJjSEXELkeXMlAFR5mU+/vv36MWLUUMHxRo38+f33XwwCAPTDFzUkqKB+CbqQiw8KCggggF2wZuGFGGao4YYcdujhhyCGKOKIJJZoYkeBAAA7' alt='Bose' />\n\t\t</div>\n\n\t\t<div class='bose-maintenanceNotice__copy'>\n\t\t\t<h1 class='bose-maintenanceNotice__title js-maintenanceNotice__title'>HTTP/1.1 429</h1>\n\n\t\t\t<h3 class='bose-maintenanceNotice__subtitle js-maintenanceNotice__subtitle -paddingTop'>Too many requests.</h3>\n\t\t\t<p class='bose-maintenanceNotice__text'>\n\t\t\t\t<span class='js-maintenance-text-1'>Sorry for the inconvenience, but you are generating too many requests at this moment.</span>\n\t\t\t\t<br /><span class='js-maintenance-text-2'>Your IP address will be blocked for 240 min.</span>\n\t\t\t\t<br /><span class='js-maintenance-text-3'>Thanks for your patience, try again later</span>\n\t\t\t</p>\n\n\t\t\t<p class='bose-maintenanceNotice__text__phone -paddingTop js-maintenanceNotice__text__phone'>\n\t\t\t\tHave questions? Call us at 1-800-379-2073.\n\t\t\t</p>\n\t\t</div>\n\n\t\t<div class='bose-maintenanceNotice__footer'>\n\t\t\t<div class='bose-maintenanceNotice__footer--right js-maintenanceNotice__footer--right'>\n\t\t\t\tBose Corporation &copy;<span class=\"js-copyright-year\">2021</span>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n\t\n\n</body>\n</html>"
       Rules:
         - !If
           - AWSManagedRulesActivated
@@ -569,15 +577,23 @@ Resources:
                           Type: URL_DECODE
                         - Priority: 2
                           Type: HTML_ENTITY_DECODE
+                      SensitivityLevel: !Ref SqlInjectionProtectionSensitivityLevelParam
                   - SqliMatchStatement:
                       FieldToMatch:
-                        Body:
-                          OversizeHandling: CONTINUE
+                        Body: 
+                          # Select the option based on user input
+                          OversizeHandling:
+                            !If [SqlInjectionProtectionContinueActivated, 'CONTINUE', 
+                              !If [SqlInjectionProtectionMatchActivated, 'MATCH', 
+                                !If [SqlInjectionProtectionNoMatchActivated, 'NO_MATCH', 'CONTINUE']
+                              ]
+                            ]
                       TextTransformations:
                         - Priority: 1
                           Type: URL_DECODE
                         - Priority: 2
                           Type: HTML_ENTITY_DECODE
+                      SensitivityLevel: !Ref SqlInjectionProtectionSensitivityLevelParam
                   - SqliMatchStatement:
                       FieldToMatch:
                         UriPath: {}
@@ -586,6 +602,7 @@ Resources:
                           Type: URL_DECODE
                         - Priority: 2
                           Type: HTML_ENTITY_DECODE
+                      SensitivityLevel: !Ref SqlInjectionProtectionSensitivityLevelParam
                   - SqliMatchStatement:
                       FieldToMatch:
                         SingleHeader: {Name: "Authorization"}
@@ -594,6 +611,7 @@ Resources:
                           Type: URL_DECODE
                         - Priority: 2
                           Type: HTML_ENTITY_DECODE
+                      SensitivityLevel: !Ref SqlInjectionProtectionSensitivityLevelParam
                   - SqliMatchStatement:
                       FieldToMatch:
                         SingleHeader: {Name: "Cookie"}
@@ -602,6 +620,7 @@ Resources:
                           Type: URL_DECODE
                         - Priority: 2
                           Type: HTML_ENTITY_DECODE
+                      SensitivityLevel: !Ref SqlInjectionProtectionSensitivityLevelParam
           - !Ref 'AWS::NoValue'
         - !If
           - CrossSiteScriptingProtectionActivated
@@ -626,8 +645,14 @@ Resources:
                           Type: HTML_ENTITY_DECODE
                   - XssMatchStatement:
                       FieldToMatch:
-                        Body:
-                          OversizeHandling: CONTINUE
+                        Body: 
+                          OversizeHandling:
+                            # Select the option based on user input
+                            !If [CrossSiteScriptingProtectionContinueActivated, 'CONTINUE', 
+                              !If [CrossSiteScriptingProtectionMatchActivated, 'MATCH', 
+                                !If [CrossSiteScriptingProtectionNoMatchActivated, 'NO_MATCH', 'CONTINUE']
+                              ]
+                            ]
                       TextTransformations:
                         - Priority: 1
                           Type: URL_DECODE

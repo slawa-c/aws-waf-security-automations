@@ -1,27 +1,15 @@
-# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License").
-# You may not use this file except in compliance with the License.
-# A copy of the License is located at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# or in the "license" file accompanying this file. This file is distributed
-# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-# express or implied. See the License for the specific language governing
-# permissions and limitations under the License.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
 
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  (SO0006) - AWS WAF Security Automations v3.2.0: This AWS CloudFormation template helps
+  (SO0006) - AWS WAF Security Automations %VERSION%: This AWS CloudFormation template helps
   you provision the AWS WAF Security Automations stack without worrying about creating and
   configuring the underlying AWS infrastructure.
 
   **WARNING** This template creates multiple AWS Lambda functions, an AWS WAFv2 Web ACL, an Amazon S3 bucket,
   and an Amazon CloudWatch custom metric. You will be billed for the AWS resources used if you
   create a stack from this template.
-
-  **CHANGED** This template was changed to match additional features used in BOSE GDS platform
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -31,6 +19,7 @@ Metadata:
         Parameters:
           - ActivateAWSManagedRulesParam
           - ActivateSqlInjectionProtectionParam
+          - SqlInjectionProtectionSensitivityLevelParam
           - ActivateCrossSiteScriptingProtectionParam
           - ActivateHttpFloodProtectionParam
           - ActivateScannersProbesProtectionParam
@@ -60,6 +49,9 @@ Metadata:
 
       ActivateSqlInjectionProtectionParam:
         default: Activate SQL Injection Protection
+
+      SqlInjectionProtectionSensitivityLevelParam:
+        default: Sensitivity Level for SQL Injection Protection
 
       ActivateCrossSiteScriptingProtectionParam:
         default: Activate Cross-site Scripting Protection
@@ -103,6 +95,10 @@ Metadata:
       SNSEmailParam:
         default: Email for receiving notifcation upon Allowed or Denied IP Sets expiration
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> aefb0289fb77f0c788ae2268409ac8360e13df8b
 Parameters:
   ActivateAWSManagedRulesParam:
     Type: String
@@ -117,8 +113,25 @@ Parameters:
     Default: 'yes'
     AllowedValues:
       - 'yes'
+      - 'yes - MATCH'
+      - 'yes - NO_MATCH'
       - 'no'
-    Description: Choose yes to enable the component designed to block common SQL injection attacks.
+    Description: >-
+      Choose yes to enable the component designed to block common SQL injection attacks. You can also select an option you want AWS WAF to handle oversized request exceeding 8 KB (8192 bytes). 
+      By default 'yes' uses CONTINUE option, which inspects the request component contents that are within the size limitations normally according to the rule inspection criteria.
+      For more information, see https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-oversize-handling.html.
+
+  SqlInjectionProtectionSensitivityLevelParam:
+    Type: String
+    Default: 'LOW'
+    AllowedValues:
+      - 'LOW'
+      - 'HIGH'
+    Description: >-
+      Choose the sensitivity level that you want AWS WAF to use to inspect for SQL injection attacks. HIGH detects more attacks, but might generate more false positives.
+      LOW is generally a better choice for resources that already have other protections against SQL injection attacks or that have a low tolerance for false positives.
+      For more information, see https://aws.amazon.com/about-aws/whats-new/2022/07/aws-waf-sensitivity-levels-sql-injection-rule-statements/. 
+      If you choose to deactivate SQL injection protection, ignore this parameter.
 
   ActivateCrossSiteScriptingProtectionParam:
     Type: String
@@ -131,6 +144,17 @@ Parameters:
   ActivateHttpFloodProtectionParam:
     Type: String
     Default: 'yes - Amazon Athena log parser'
+      - 'yes - MATCH'
+      - 'yes - NO_MATCH'
+      - 'no'
+    Description: >-
+      Choose yes to enable the component designed to block common SQL injection attacks. You can also select an option you want AWS WAF to handle oversized request exceeding 8 KB (8192 bytes). 
+      By default 'yes' uses CONTINUE option, which inspects the request component contents that are within the size limitations normally according to the rule inspection criteria.
+      For more information, see https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-oversize-handling.html.
+
+  ActivateHttpFloodProtectionParam:
+    Type: String
+    Default: 'yes - AWS WAF rate based rule'
     AllowedValues:
       - 'yes - AWS WAF rate based rule'
       - 'yes - AWS Lambda log parser'
@@ -326,9 +350,9 @@ Conditions:
 Mappings:
     SourceCode:
         General:
-            TemplateBucket: 'gds-solutions-reference'
-            SourceBucket: 'solutions'
-            KeyPrefix: 'aws-waf-security-automations/v3.2.0'
+            TemplateBucket: '%TEMPLATE_OUTPUT_BUCKET%'
+            SourceBucket: '%DIST_OUTPUT_BUCKET%'
+            KeyPrefix: '%SOLUTION_NAME%/%VERSION%'
     Solution:
         Data:
             SendAnonymousUsageData: 'Yes'
@@ -348,7 +372,8 @@ Mappings:
         Athena:
             QueryScheduledRunTime: 5   # by default athena query runs every 5 minutes, update it if needed
         UserAgent:
-            UserAgentExtra: 'AwsSolution/SO0006/v3.2.0'
+            UserAgentExtra: 'AwsSolution/SO0006/%VERSION%'
+
 
 Resources:
   CheckRequirements:
@@ -403,6 +428,7 @@ Resources:
         ActivateAWSManagedRulesParam: !Ref ActivateAWSManagedRulesParam
         ActivateSqlInjectionProtectionParam: !Ref ActivateSqlInjectionProtectionParam
         ActivateCrossSiteScriptingProtectionParam: !Ref ActivateCrossSiteScriptingProtectionParam
+        SqlInjectionProtectionSensitivityLevelParam: !Ref SqlInjectionProtectionSensitivityLevelParam
         ActivateHttpFloodProtectionParam: !Ref ActivateHttpFloodProtectionParam
         ActivateScannersProbesProtectionParam: !Ref ActivateScannersProbesProtectionParam
         ActivateReputationListsProtectionParam: !Ref ActivateReputationListsProtectionParam
@@ -414,7 +440,6 @@ Resources:
         GlueAppAccessLogsTable: !If [ScannersProbesAthenaLogParser, !GetAtt FirehoseAthenaStack.Outputs.GlueAppAccessLogsTable, '']
         GlueWafAccessLogsTable: !If [HttpFloodAthenaLogParser, !GetAtt FirehoseAthenaStack.Outputs.GlueWafAccessLogsTable,'']
         LogLevel: !FindInMap ["Solution", "Data", "LogLevel"]
-
 
 
   LambdaRoleHelper:
@@ -1309,12 +1334,6 @@ Resources:
   LogParser:
     Type: 'AWS::Lambda::Function'
     Condition: LogParser
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          -
-            id: W58
-            reason: "Log permissions are defined in the LambdaRoleLogParser policies"
     Properties:
       Description: >-
             This function parses access logs to identify suspicious behavior, such as an abnormal amount of errors.
@@ -1362,16 +1381,12 @@ Resources:
           reason: There is no need to run this lambda in a VPC
         - id: W92
           reason: There is no need for Reserved Concurrency
+        - id: W58
+          reason: "Log permissions are defined in the LambdaRoleLogParser policies"
 
   MoveS3LogsForPartition:
     Type: 'AWS::Lambda::Function'
     Condition: ScannersProbesAthenaLogParser
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          -
-            id: W58
-            reason: "Log permissions are defined in the LambdaRolePartitionS3Logs policies"
     Properties:
       Description: >-
             This function is triggered by S3 event to move log files(upon their arrival in s3) from their original location
@@ -1398,16 +1413,12 @@ Resources:
           reason: There is no need to run this lambda in a VPC
         - id: W92
           reason: There is no need for Reserved Concurrency
+        - id: W58
+          reason: "Log permissions are defined in the LambdaRolePartitionS3Logs policies"
 
   AddAthenaPartitions:
     Type: 'AWS::Lambda::Function'
     Condition: AthenaLogParser
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          -
-            id: W58
-            reason: "Log permissions are defined in the LambdaRoleAddAthenaPartitions policies"
     Properties:
       Description: >-
             This function adds a new hourly partition to athena table.
@@ -1431,6 +1442,8 @@ Resources:
           reason: There is no need to run this lambda in a VPC
         - id: W92
           reason: There is no need for Reserved Concurrency
+        - id: W58
+          reason: "Log permissions are defined in the LambdaRoleAddAthenaPartitions policies"
 
   SetIPRetention:
     Type: 'AWS::Lambda::Function'
@@ -1646,12 +1659,6 @@ Resources:
   ReputationListsParser:
     Type: 'AWS::Lambda::Function'
     Condition: ReputationListsProtectionActivated
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          -
-            id: W58
-            reason: "Log permissions are defined in the LambdaRoleReputationListsParser policies"
     Properties:
       Description: >-
         This lambda function checks third-party IP reputation lists hourly for new IP ranges to
@@ -1688,6 +1695,8 @@ Resources:
           reason: There is no need to run this lambda in a VPC
         - id: W92
           reason: There is no need for Reserved Concurrency
+        - id: W58
+          reason: "Log permissions are defined in the LambdaRoleReputationListsParser policies"
 
 
   ReputationListsParserEventsRule:
@@ -1740,12 +1749,6 @@ Resources:
   BadBotParser:
     Type: 'AWS::Lambda::Function'
     Condition: BadBotProtectionActivated
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          -
-            id: W58
-            reason: "Log permissions are defined in the LambdaRoleBadBot policies"
     Properties:
       Description: >-
         This lambda function will intercepts and inspects trap endpoint requests to extract its IP
@@ -1782,6 +1785,8 @@ Resources:
           reason: There is no need to run this lambda in a VPC
         - id: W92
           reason: There is no need for Reserved Concurrency
+        - id: W58
+          reason: "Log permissions are defined in the LambdaRoleBadBot policies"
 
   LambdaInvokePermissionBadBot:
     Type: 'AWS::Lambda::Permission'
@@ -1944,12 +1949,6 @@ Resources:
 
   CustomResource:
     Type: 'AWS::Lambda::Function'
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          -
-            id: W58
-            reason: "Log permissions are defined in the LambdaRoleCustomResource policies"
     Properties:
       Description: >-
         This lambda function configures the Web ACL rules based on the features enabled in the
@@ -1976,6 +1975,8 @@ Resources:
           reason: There is no need to run this lambda in a VPC
         - id: W92
           reason: There is no need for Reserved Concurrency
+        - id: W58
+          reason: "Log permissions are defined in the LambdaRoleCustomResource policies"
 
   ConfigureAWSWAFLogs:
     Type: 'Custom::ConfigureAWSWAFLogs'
@@ -2079,7 +2080,7 @@ Resources:
       RequestThreshold: !Ref RequestThreshold
       ErrorThreshold: !Ref ErrorThreshold
       WAFBlockPeriod: !Ref WAFBlockPeriod
-      Version: "v3.2.0"
+      Version: "%VERSION%"
       SendAnonymousUsageData: !FindInMap ["Solution", "Data", "SendAnonymousUsageData"]
 
   CustomAddAthenaPartitions:
@@ -2254,4 +2255,4 @@ Outputs:
 
   SolutionVersion:
     Description: Solution Version Number
-    Value: "v3.2.0"
+    Value: "%VERSION%"

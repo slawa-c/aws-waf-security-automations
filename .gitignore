@@ -22,7 +22,7 @@ source/tests/__pycache__/
 source/log_parser/__pycache__/
 deployment/global-s3-assets/
 deployment/regional-s3-assets/
-*.pyc
+
 # coverage
 **/coverage
 **/package
