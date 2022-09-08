@@ -95,10 +95,6 @@ Metadata:
       SNSEmailParam:
         default: Email for receiving notifcation upon Allowed or Denied IP Sets expiration
 
-<<<<<<< HEAD
-=======
-
->>>>>>> aefb0289fb77f0c788ae2268409ac8360e13df8b
 Parameters:
   ActivateAWSManagedRulesParam:
     Type: String
