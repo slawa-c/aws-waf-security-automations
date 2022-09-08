@@ -95,6 +95,7 @@ Metadata:
       SNSEmailParam:
         default: Email for receiving notifcation upon Allowed or Denied IP Sets expiration
 
+
 Parameters:
   ActivateAWSManagedRulesParam:
     Type: String
@@ -134,12 +135,6 @@ Parameters:
     Default: 'yes'
     AllowedValues:
       - 'yes'
-      - 'no'
-    Description: Choose yes to enable the component designed to block common XSS attacks.
-
-  ActivateHttpFloodProtectionParam:
-    Type: String
-    Default: 'yes - Amazon Athena log parser'
       - 'yes - MATCH'
       - 'yes - NO_MATCH'
       - 'no'
@@ -150,7 +145,7 @@ Parameters:
 
   ActivateHttpFloodProtectionParam:
     Type: String
-    Default: 'yes - AWS WAF rate based rule'
+    Default: 'yes - Amazon Athena log parser'
     AllowedValues:
       - 'yes - AWS WAF rate based rule'
       - 'yes - AWS Lambda log parser'
